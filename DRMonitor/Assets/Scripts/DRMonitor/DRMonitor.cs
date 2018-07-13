@@ -46,6 +46,11 @@ public class DRMonitor
                         Debug.Log(temp.TopicPort);
                         node.sendMyInfo();
                     }
+                    else
+                    {
+                        node.TargetPort = -1;
+                        node.sendMyInfo();
+                    }
                 }
                 node.IsAttentionRequired = false;
             }

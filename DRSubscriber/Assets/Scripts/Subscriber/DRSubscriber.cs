@@ -11,35 +11,41 @@ public class DRSubscriber {
     private int targetPort;
     private int serverCheckCount;
 
-    public DRSubscriber()
+    public DRSubscriber(string name, string serverIP, int serverPort, string targetPubName)
     {
         okToSubscribe = false;
         isConnected = false;
-        client = new DRSocket("sub1");
-        client.connectToServer("127.0.0.1", 10000);
+        client = new DRSocket(name);
+        client.connectToServer(serverIP, serverPort);
         isConnected = client.IsSocketReady;
-        client.setMyInfo(false, "127.0.0.1", "pub1");
+        client.setMyInfo(false, "127.0.0.1", targetPubName);
         client.sendMyInfo();
         while (!client.IsAttentionRequired)
         {
-            if (serverCheckCount > 60 * 10)
+            if (serverCheckCount > 60 * 5)
             {
                 Debug.Log("is DRMonitor there?");
-                throw new Exception();
+                QuitGame();
             }
             Debug.Log(client.IsAttentionRequired);
             serverCheckCount++;
-            Thread.Sleep(20);
+            Thread.Sleep(100);
         }
     }
 
-    public void update()
+    public byte[] update()
     {
         if (client.IsAttentionRequired)
         {
             if (sub == null)
             {
-                sub = new DRSocket("sub1");
+                if (client.TargetPort==-1)
+                {
+                    Debug.Log("no publisher found");
+                    QuitGame();
+                    return null;
+                }
+                sub = new DRSocket(client.ClientName);
                 Debug.Log("connectig to : " + client.TargetPort);
                 sub.setMyInfo(false, client.MyIp, client.TargetNodeName);
                 sub.connectToServer(client.MyIp, client.TargetPort);
@@ -49,34 +55,33 @@ public class DRSubscriber {
             if(sub.isConnected()) okToSubscribe = true;
         }
 
-        if (!okToSubscribe) return;
-        else Debug.Log("subscribing...");
+        if (!okToSubscribe) return null;
         if (sub.IsNewlyReceived && okToSubscribe)
         {
             sub.IsNewlyReceived = false;
             byte[] bMsg = sub.getRecentData();
-            Debug.Log("subscribing 1");
-            ByteBuffer bb = new ByteBuffer(bMsg);
-            if (Sample.SampleBufferHasIdentifier(bb))
-            {
-                Debug.Log("subscribing 2");
-                Sample data = Sample.GetRootAsSample(bb);
-                var temp = data.Acc.Value;
-                Vector3 acc = new Vector3(temp.X, temp.Y, temp.Z);
-
-                Debug.Log("acc: " +  acc.x + ", " + acc.y + ", " + acc.z);
-            }
-
-        }
-        
-
+            return bMsg;
+        }else return null;
      }
 
 
     public void destory()
     {
-        client.closeSocket();
-        sub.closeSocket();
+        if(client!=null)client.closeSocket();
+        if(sub!=null)sub.closeSocket();
         isConnected = false;
+    }
+
+    public void QuitGame()
+    {
+        destory();
+        // save any game data here
+#if UNITY_EDITOR
+        // Application.Quit() does not work in the editor so
+        // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+                 Application.Quit();
+        #endif
     }
 }

@@ -15,7 +15,7 @@ using UnityEngine;
  **/
 public class DRSocket
 {
-    private static int tempSocketID = 0;
+    private static int tempSocketID=0;
     private string clientName;
     private string myIp;
     private bool isPublisher;
@@ -94,8 +94,7 @@ public class DRSocket
         try
         {
             temp = dataStorage[dataStoragePtrMostRecent];
-        }
-        catch (Exception e)
+        }catch(Exception e)
         {
             Debug.Log("count: " + dataStorage.Count);
             Debug.Log("dataStoragePtr: " + dataStoragePtr);
@@ -297,8 +296,7 @@ public class DRSocket
             client.GetStream().BeginRead(readBuffer, 0, readBuffer.Length, onRead, null);
             isSocketReady = true;
             Debug.Log("coonected");
-        }
-        catch (Exception e)
+        }catch(Exception e)
         {
             isSocketReady = false;
             Debug.Log("is server alive?");
@@ -315,10 +313,10 @@ public class DRSocket
     /// <param name="ar"></param>
     private void onRead(IAsyncResult ar)
     {
-
+        
         int length = client.GetStream().EndRead(ar);
         if (length <= 0) // Connection closed
-        {
+        { 
             isSocketReady = false;
             return;
         }
@@ -348,7 +346,7 @@ public class DRSocket
             Debug.Log("name came in");
         }
         else updateDataStorage(ba);
-
+        
     }
 
     /// <summary>
@@ -361,16 +359,16 @@ public class DRSocket
         if (dataStorage.Count < maxNumDataStore)
         {
             dataStorage.Add(ba);
-            dataStoragePtr = dataStorage.Count - 1;
+            dataStoragePtr = dataStorage.Count -1;
         }
         else
         {
-            if (dataStoragePtr + 1 >= maxNumDataStore) dataStoragePtr = 0;
+            if (dataStoragePtr+1 >= maxNumDataStore) dataStoragePtr = 0;
             dataStorage[dataStoragePtr] = ba;
             dataStoragePtr++;
         }
-        if (dataStoragePtr < 9) dataStoragePtrMostRecent = dataStoragePtr - 1;
-        else dataStoragePtrMostRecent = maxNumDataStore - 1;
+        if (dataStoragePtr<9)dataStoragePtrMostRecent = dataStoragePtr - 1;
+        else dataStoragePtrMostRecent = maxNumDataStore-1;
         isNewlyRecieved = true;
     }
 

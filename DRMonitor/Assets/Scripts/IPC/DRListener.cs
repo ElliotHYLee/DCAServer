@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
@@ -43,7 +43,7 @@ public class DRListener {
         TcpListener listener = (TcpListener)ar.AsyncState;
         var drSocket = new DRSocket(listener.EndAcceptSocket(ar));
         if (onRequest == null) throw new NullReferenceException();
-        async_startListening();
         onRequest(drSocket);
+        async_startListening();
     }
 }
