@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
-public class DRSubscriber {
+public class DRSubscriber
+{
     private bool isConnected, okToSubscribe;
     private DRSocket client, sub;
     private int targetPort;
@@ -30,6 +31,7 @@ public class DRSubscriber {
             Debug.Log(client.IsAttentionRequired);
             serverCheckCount++;
             Thread.Sleep(100);
+            client.sendMyInfo();
         }
     }
 
@@ -39,10 +41,10 @@ public class DRSubscriber {
         {
             if (sub == null)
             {
-                if (client.TargetPort==-1)
+                if (client.TargetPort < 1)
                 {
                     Debug.Log("no publisher found");
-                    QuitGame();
+                    client.sendMyInfo();
                     return null;
                 }
                 sub = new DRSocket(client.ClientName);
@@ -52,23 +54,34 @@ public class DRSubscriber {
                 sub.sendMyInfo();
             }
             client.IsAttentionRequired = false;
-            if(sub.isConnected()) okToSubscribe = true;
+            if (sub.isConnected()) okToSubscribe = true;
+            return null;
         }
-
-        if (!okToSubscribe) return null;
-        if (sub.IsNewlyReceived && okToSubscribe)
+        else
         {
-            sub.IsNewlyReceived = false;
-            byte[] bMsg = sub.getRecentData();
-            return bMsg;
-        }else return null;
-     }
-
+            if (!sub.isConnected())
+            {
+                if (!sub.isConnected()) okToSubscribe = false;
+                client.TargetPort = -1;
+                client.IsAttentionRequired = true;
+                sub = null;
+                return null;
+            }
+            //if (!okToSubscribe) return null;
+            if (sub.IsNewlyReceived && okToSubscribe)
+            {
+                sub.IsNewlyReceived = false;
+                byte[] bMsg = sub.getRecentData();
+                return bMsg;
+            }
+            else return null;
+        }
+    }
 
     public void destory()
     {
-        if(client!=null)client.closeSocket();
-        if(sub!=null)sub.closeSocket();
+        if (client != null) client.closeSocket();
+        if (sub != null) sub.closeSocket();
         isConnected = false;
     }
 
@@ -80,8 +93,8 @@ public class DRSubscriber {
         // Application.Quit() does not work in the editor so
         // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
         UnityEditor.EditorApplication.isPlaying = false;
-        #else
+#else
                  Application.Quit();
-        #endif
+#endif
     }
 }

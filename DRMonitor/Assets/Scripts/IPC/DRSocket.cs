@@ -23,6 +23,7 @@ public class DRSocket
     private bool isAttentionRequired;
     private string targetNodeName;
     private int targetPort;
+    private string targetIP;
 
     protected Socket tcp;
     protected TcpClient client;
@@ -39,6 +40,7 @@ public class DRSocket
     /// </summary>
     public DRSocket()
     {
+        this.targetIP = "0.0.0.0";
         client = new TcpClient();
         readBuffer = new byte[8192];
         dataStoragePtrMostRecent = 0;
@@ -55,6 +57,7 @@ public class DRSocket
     /// <param name="drSocket">The object to deep copy</param>
     public DRSocket(DRSocket drSocket) : this()
     {
+        targetIP = drSocket.TargetIP;
         dataStoragePtr = drSocket.DataStoragePtr;
         dataStorage = drSocket.DataStorage;
         tcp = drSocket.Tcp;
@@ -62,6 +65,7 @@ public class DRSocket
         isNewlyRecieved = drSocket.IsNewlyReceived;
         recievedData = drSocket.RecievedData;
         isSocketReady = drSocket.IsSocketReady;
+       
     }
 
     /// <summary>
@@ -83,6 +87,13 @@ public class DRSocket
         client.Client = tcp;
         isSocketReady = true;
         client.GetStream().BeginRead(readBuffer, 0, readBuffer.Length, onRead, null);
+    }
+
+    public void getRemoteIP()
+    {
+        string address = tcp.RemoteEndPoint.ToString();
+        int ipIndex = address.IndexOf(":");
+        myIp = address.Substring(0, ipIndex);
     }
     #endregion
 
@@ -259,6 +270,19 @@ public class DRSocket
         }
     }
 
+    public string TargetIP
+    {
+        get
+        {
+            return targetIP;
+        }
+
+        set
+        {
+            targetIP = value;
+        }
+    }
+
 
     #endregion
 
@@ -341,7 +365,9 @@ public class DRSocket
             isPublisher = data.IsPublisher;
             topicPort = data.TopicPort;
             targetNodeName = data.TargetNodeName;
+            targetIP = data.TargetIP;
             targetPort = data.TargetPort;
+            targetIP = data.TargetIP;
             isAttentionRequired = true;
             Debug.Log("name came in");
         }
@@ -383,6 +409,7 @@ public class DRSocket
         FlatBufferBuilder fbb = new FlatBufferBuilder(1);
         StringOffset fbb_name = fbb.CreateString(clientName);
         StringOffset fbb_myIp = fbb.CreateString("127.0.0.1");
+        StringOffset fbb_targetIP = fbb.CreateString(this.targetIP);
         StringOffset fbb_targetNodeName = fbb.CreateString(targetNodeName);
         Debug.Log("packing clinet name: " + clientName);
         ClientProperty.StartClientProperty(fbb);
@@ -390,6 +417,7 @@ public class DRSocket
         ClientProperty.AddIsPublisher(fbb, isPublisher);
         ClientProperty.AddMyIp(fbb, fbb_myIp);
         ClientProperty.AddTopicPort(fbb, topicPort);
+        ClientProperty.AddTargetIP(fbb, fbb_targetIP);
         ClientProperty.AddTargetNodeName(fbb, fbb_targetNodeName);
         ClientProperty.AddTargetPort(fbb, targetPort);
         var offset = ClientProperty.EndClientProperty(fbb);

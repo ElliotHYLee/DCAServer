@@ -24,6 +24,14 @@ public class DRMonitorPlayer : MonoBehaviour {
         drMon.update(panel_runningApps, panel_coonectedApp, createNew);
     }
 
+    void Awake()
+    {
+        #if UNITY_EDITOR
+        QualitySettings.vSyncCount = 0;  // VSync must be disabled
+        Application.targetFrameRate = 5;
+        #endif
+    }
+
     private GameObject createNew()
     {
         GameObject temp = Instantiate(panel_coonectedApp, panel_runningApps.transform);

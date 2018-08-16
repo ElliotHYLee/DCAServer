@@ -1,15 +1,11 @@
 using System;
-using global::FlatBuffers;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Net;
+using System.Net.Sockets;
+using UnityEngine;
 
-
-public class DRListener
-{
+public class DRListener {
     public delegate void NewRequest(DRSocket drSocket);
     public NewRequest onRequest;
 
@@ -47,7 +43,7 @@ public class DRListener
         TcpListener listener = (TcpListener)ar.AsyncState;
         var drSocket = new DRSocket(listener.EndAcceptSocket(ar));
         if (onRequest == null) throw new NullReferenceException();
-        async_startListening();
         onRequest(drSocket);
+        async_startListening();
     }
 }

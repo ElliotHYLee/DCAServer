@@ -1,14 +1,11 @@
 using System;
-using global::FlatBuffers;
-using System.Net.Sockets;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-using System.Collections.Generic;
 using UnityEngine;
-using System.Net;
 
-public class DRNodeManager
-{
+public class DRNodeManager {
     private Dictionary<string, DRSocket> nodeDict;
     private DRListener registrationDesk;
 
@@ -30,13 +27,12 @@ public class DRNodeManager
         nodeDict = new Dictionary<string, DRSocket>();
         registrationDesk = new DRListener(ip, port);
         registrationDesk.onRequest = addNewNode;
-        Debug.Log("topic opened at port: " + port);
     }
 
     private void addNewNode(DRSocket drSocket)
     {
         int count = 0;
-        while (drSocket.ClientName.Length >= 5 && drSocket.ClientName.Substring(0, 5).Equals("guest"))
+        while(drSocket.ClientName.Length>=5 && drSocket.ClientName.Substring(0,5).Equals("guest"))
         {
             if (count > 10 * 10) throw new Exception();
             Thread.Sleep(100);
@@ -44,6 +40,7 @@ public class DRNodeManager
         }
         if (nodeDict.ContainsKey(drSocket.ClientName)) nodeDict[drSocket.ClientName] = drSocket;
         else nodeDict.Add(drSocket.ClientName, drSocket);
+        drSocket.getRemoteIP();
         Debug.Log("new app attached");
     }
 

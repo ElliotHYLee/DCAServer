@@ -7,7 +7,7 @@ public class Player : MonoBehaviour {
     private DRSubscriber sub;
 	// Use this for initialization
 	void Start () {
-        sub = new DRSubscriber("sub1", "127.0.0.1", 10000, "pub1");
+        sub = new DRSubscriber("sub1", "127.0.0.1", 10000, "QLearningPy");
 	}
 	
 	// Update is called once per frame

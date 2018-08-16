@@ -15,9 +15,10 @@ public class Player : MonoBehaviour {
         accx = 0;
         accy = 0;
         accz = 0;
-        pub = new DRPublisher("pub1", "127.0.0.1", 10000);
+        pub = new DRPublisher("pub1", "192.168.43.1", 10000);
+        //pub = new DRPublisher("pub1", "127.0.0.1", 10000);
         //pub.Loop = mainLoop;
-	}
+    }
 
     void Update()
     {
@@ -70,5 +71,5 @@ public class Player : MonoBehaviour {
         pub.publish(bMsg);
     }
 
-    
+
 }

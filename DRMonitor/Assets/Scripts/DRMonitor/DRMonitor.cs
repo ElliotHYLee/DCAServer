@@ -39,11 +39,13 @@ public class DRMonitor
                 else
                 {
                     string targetName = node.TargetNodeName;
-                    if (nodeDict.ContainsKey(targetName))
+                    if (nodeDict.ContainsKey(targetName) && nodeDict[targetName].isConnected())
                     {
                         DRSocket temp = nodeDict[targetName];
                         node.TargetPort = temp.TopicPort;
+                        node.TargetIP = temp.MyIp;
                         Debug.Log(temp.TopicPort);
+                        var targetNode = nodeDict[targetName];
                         node.sendMyInfo();
                     }
                     else

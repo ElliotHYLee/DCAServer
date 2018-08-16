@@ -27,7 +27,6 @@ public class DRNodeManager {
         nodeDict = new Dictionary<string, DRSocket>();
         registrationDesk = new DRListener(ip, port);
         registrationDesk.onRequest = addNewNode;
-        Debug.Log("topic opened at port: " + port);
     }
 
     private void addNewNode(DRSocket drSocket)
@@ -41,6 +40,7 @@ public class DRNodeManager {
         }
         if (nodeDict.ContainsKey(drSocket.ClientName)) nodeDict[drSocket.ClientName] = drSocket;
         else nodeDict.Add(drSocket.ClientName, drSocket);
+        drSocket.getRemoteIP();
         Debug.Log("new app attached");
     }
 
