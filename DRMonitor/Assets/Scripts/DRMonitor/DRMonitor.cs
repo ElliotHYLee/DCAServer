@@ -39,6 +39,9 @@ public class DRMonitor
                 else
                 {
                     string targetName = node.TargetNodeName;
+                    Debug.Log("++++++" + targetName);
+                    Debug.Log("++++++" + nodeDict.ContainsKey(targetName));
+                    if (nodeDict.ContainsKey(targetName)) Debug.Log("++++++" + nodeDict[targetName].isConnected());
                     if (nodeDict.ContainsKey(targetName) && nodeDict[targetName].isConnected())
                     {
                         DRSocket temp = nodeDict[targetName];
@@ -47,9 +50,11 @@ public class DRMonitor
                         Debug.Log(temp.TopicPort);
                         var targetNode = nodeDict[targetName];
                         node.sendMyInfo();
+                        Debug.Log(node.ClientName + " is requesting " + node.TargetNodeName + " : " + node.TargetIP + " : " + node.TargetPort);
                     }
                     else
                     {
+                        node.TargetIP = "0.0.0.0";
                         node.TargetPort = -1;
                         node.sendMyInfo();
                     }

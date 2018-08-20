@@ -81,7 +81,7 @@ public class DRPublisher {
         client.sendMyInfo();
         while(!client.IsAttentionRequired)
         {
-            if(serverCheckCount > 60*5)
+            if(serverCheckCount > 60*3)
             {
                 Debug.Log("is DRMonitor there?");
                 throw new Exception();

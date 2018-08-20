@@ -50,7 +50,7 @@ public class DRSubscriber
                 sub = new DRSocket(client.ClientName);
                 Debug.Log("connectig to : " + client.TargetPort);
                 sub.setMyInfo(false, client.MyIp, client.TargetNodeName);
-                sub.connectToServer(client.MyIp, client.TargetPort);
+                sub.connectToServer(client.TargetIP, client.TargetPort);
                 sub.sendMyInfo();
             }
             client.IsAttentionRequired = false;
