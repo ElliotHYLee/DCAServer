@@ -13,64 +13,30 @@ public class DRPublisher {
     #region publisher thread
     private Thread thPub;
     public delegate void PublisherLoop();
-    public PublisherLoop Loop;
+    public PublisherLoop pubLoop;
     private double updateRate; 
     bool okToPublish;
     int serverCheckCount=0;
     #endregion
 
     private DRSocket client;
-    private DRNodeManager topic1;
+    private DRNodeManager topicManager;
     bool isConnected;
-
-    public double Update_rate
-    {
-        get
-        {
-            return updateRate;
-        }
-
-        set
-        {
-            updateRate = value;
-        }
-    }
-
-    public bool OkToPublish
-    {
-        get
-        {
-            return okToPublish;
-        }
-
-        set
-        {
-            okToPublish = value;
-        }
-    }
-
-    public bool IsConnected
-    {
-        get
-        {
-            return isConnected;
-        }
-
-        set
-        {
-            isConnected = value;
-        }
-    }
-
+    int knockServerCounter = 0;
+    string serverIP;
+    int serverPort;
+    
     #region constructors & helpers
 
     private void openTopicRegistrationDesk()
     {
-        topic1 = new DRNodeManager("127.0.0.1", client.TopicPort);
+        topicManager = new DRNodeManager("127.0.0.1", client.TopicPort);
     }
 
     private void constructorHelper(string name, string serverIP, int serverPort)
     {
+        this.serverIP = serverIP;
+        this.serverPort = serverPort;
         isConnected = false;
         okToPublish = false;
         updateRate = 0;
@@ -78,21 +44,31 @@ public class DRPublisher {
         client.IsPublisher = true;
         client.connectToServer(serverIP, serverPort);
         isConnected = client.IsSocketReady;
-        client.sendMyInfo();
-        while(!client.IsAttentionRequired)
+
+        Thread connThread = new Thread(new ThreadStart(connMethod));
+        connThread.Start();
+    }
+
+    private void connMethod()
+    {
+        while (!client.IsAttentionRequired)
         {
-            if(serverCheckCount > 60*3)
+            client.sendMyInfo();
+            Debug.Log("is DRMonitor there?");
+            isConnected = client.IsSocketReady;
+            Thread.Sleep(500);
+            knockServerCounter++;
+            if (knockServerCounter > 10)
             {
-                Debug.Log("is DRMonitor there?");
-                throw new Exception();
+                client.connectToServer(serverIP, serverPort);
+                knockServerCounter = 0;
             }
-            Debug.Log(client.IsAttentionRequired);
-            serverCheckCount++;
-            Thread.Sleep(20);
         }
         okToPublish = true;
         Debug.Log("port to pub: " + client.TopicPort);
         openTopicRegistrationDesk();
+        thPub = new Thread(runPUb);
+        thPub.Start();
     }
 
     public DRPublisher(string name, string serverIP, int serverPort)
@@ -100,17 +76,11 @@ public class DRPublisher {
         constructorHelper(name, serverIP, serverPort);
     }
 
-    public DRPublisher(string name, string serverIP, int serverPort, double updateRate=100)
+    public DRPublisher(string name, string serverIP, int serverPort, double updateRate=100, PublisherLoop pubLoop=null)
     {
-        if (updateRate<=60) throw new Exception("For less than 60Hz, please use Unity's main thread");
-        constructorHelper(name, serverIP, serverPort);
         this.updateRate = updateRate;
-        Loop = null;
-        if (isConnected)
-        {
-            thPub = new Thread(runPUb);
-            thPub.Start();
-        }
+        this.pubLoop = pubLoop;
+        constructorHelper(name, serverIP, serverPort);
     }
     
     #endregion
@@ -119,19 +89,13 @@ public class DRPublisher {
     {
         while(!okToPublish)
         {
-            // check if port is received from server
-            // okToPublish  = check();
             Thread.Sleep((int)Math.Round(1000.0 / updateRate));
         }
 
         while(okToPublish)
         {
-            if(Loop!=null) Loop();
-            else
-            {
-                Debug.Log("Assing the publisher main loop!!");
-                destory();
-            }
+            if(pubLoop!=null) pubLoop();
+            else Debug.Log("Publication method is not defined.");
             Thread.Sleep((int)Math.Round(1000.0 / updateRate));
         }  
     }
@@ -140,7 +104,7 @@ public class DRPublisher {
     {
         if (okToPublish)
         {
-            topic1.broadcast(msg);
+            topicManager.broadcast(msg);
             Debug.Log("publishing");
         }
     }

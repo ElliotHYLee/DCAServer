@@ -12,6 +12,19 @@ public class DRSubscriber
     private int targetPort;
     private int serverCheckCount;
 
+    public bool IsConnected
+    {
+        get
+        {
+            return isConnected;
+        }
+
+        set
+        {
+            isConnected = value;
+        }
+    }
+
     public DRSubscriber(string name, string serverIP, int serverPort, string targetPubName)
     {
         okToSubscribe = false;
@@ -21,23 +34,25 @@ public class DRSubscriber
         isConnected = client.IsSocketReady;
         client.setMyInfo(false, "127.0.0.1", targetPubName);
         client.sendMyInfo();
-        while (!client.IsAttentionRequired)
+
+        Thread connThread = new Thread(new ThreadStart(persistent));
+        connThread.Start();
+    }
+
+    private void persistent()
+    {
+        while (!isConnected)
         {
-            if (serverCheckCount > 60 * 5)
-            {
-                Debug.Log("is DRMonitor there?");
-                QuitGame();
-            }
-            Debug.Log(client.IsAttentionRequired);
-            serverCheckCount++;
-            Thread.Sleep(100);
             client.sendMyInfo();
+            isConnected = client.IsSocketReady;
+            Debug.Log("is DRMonitor Running?");
+            Thread.Sleep((int)1000.0 / 30);
         }
     }
 
     public byte[] update()
     {
-        if (client.IsAttentionRequired)
+        if (client.IsAttentionRequired) // when server response msg NEWLY arrived
         {
             if (sub == null)
             {
@@ -52,29 +67,33 @@ public class DRSubscriber
                 sub.setMyInfo(false, client.MyIp, client.TargetNodeName);
                 sub.connectToServer(client.TargetIP, client.TargetPort);
                 sub.sendMyInfo();
+                client.IsAttentionRequired = false;
             }
-            client.IsAttentionRequired = false;
+
             if (sub.isConnected()) okToSubscribe = true;
             return null;
         }
-        else
+        else if (okToSubscribe) // server reponse msg is already porcessed and connected to publisher
         {
-            if (!sub.isConnected())
-            {
-                if (!sub.isConnected()) okToSubscribe = false;
-                client.TargetPort = -1;
-                client.IsAttentionRequired = true;
-                sub = null;
-                return null;
-            }
-            //if (!okToSubscribe) return null;
-            if (sub.IsNewlyReceived && okToSubscribe)
+            if (sub.IsNewlyReceived)
             {
                 sub.IsNewlyReceived = false;
                 byte[] bMsg = sub.getRecentData();
                 return bMsg;
             }
             else return null;
+        }
+        else // when server response msg not arrived 
+        {
+            if (sub == null) return null;
+            if (!sub.isConnected())
+            {
+                if (!sub.isConnected()) okToSubscribe = false;
+                client.TargetPort = -1;
+                client.IsAttentionRequired = true;
+                sub = null;
+            }
+            return null;
         }
     }
 

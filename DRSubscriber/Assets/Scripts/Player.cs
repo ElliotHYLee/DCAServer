@@ -24,7 +24,6 @@ public class Player : MonoBehaviour {
                 Sample data = Sample.GetRootAsSample(bb);
                 var temp = data.Acc.Value;
                 Vector3 acc = new Vector3(temp.X, temp.Y, temp.Z);
-
                 Debug.Log("acc: " + acc.x + ", " + acc.y + ", " + acc.z);
             }
         }

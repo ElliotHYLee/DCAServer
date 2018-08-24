@@ -1,25 +1,38 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class DRMonitor
 {
     public delegate GameObject AddNewAppPanel();
-
     private DRNodeManager nodeManager;
     private Dictionary<string, GameObject> connectedAppDict;
-    int port;
+    int port, freq;
 
-    public DRMonitor(string ip, int port)
+
+    public DRMonitor(string ip, int port, int freq=60)
     {
+        this.freq = freq;
         connectedAppDict = new Dictionary<string, GameObject>();
         this.port = port;
         nodeManager = new DRNodeManager(ip, port);
+        Thread monitorThread = new Thread(new ThreadStart(drMonitorLogicLoop));
+        monitorThread.Start();
     }
 
-    public void update(GameObject panel_runningApps, GameObject connectedApp, AddNewAppPanel func)
+    public void drMonitorLogicLoop()
+    {
+        while(true)
+        {
+            update();
+            Thread.Sleep((int)(1000.0 / freq));
+        }       
+    }
+
+    private void update()
     {
         Dictionary<string, DRSocket> nodeDict = nodeManager.NodeDict;
         Debug.Log("here: " + nodeDict.Count);
@@ -62,8 +75,20 @@ public class DRMonitor
                 node.IsAttentionRequired = false;
             }
 
+        }
+    }
+
+    public void updateGUI(GameObject panel_runningApps, GameObject panel_connectedApp, AddNewAppPanel createNewAppPanel)
+    {
+        Dictionary<string, DRSocket> nodeDict = nodeManager.NodeDict;
+        Debug.Log("here: " + nodeDict.Count);
+        // deal with attention request
+        foreach (KeyValuePair<string, DRSocket> nodePair in nodeDict)
+        {
+            DRSocket node = nodePair.Value;
+            
             // update GUI
-            if (node.ClientName.Length>=5)
+            if (node.ClientName.Length >= 5)
             {
                 if (node.ClientName.Substring(0, 5).Equals("guest")) return;
             }
@@ -76,7 +101,7 @@ public class DRMonitor
             }
             else //creat and add
             {
-                GameObject temp = func();
+                GameObject temp = createNewAppPanel();
                 temp.GetComponentInChildren<Text>().text = text;
                 connectedAppDict.Add(node.ClientName, temp);
             }

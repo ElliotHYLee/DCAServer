@@ -15,25 +15,14 @@ public class Player : MonoBehaviour {
         accx = 0;
         accy = 0;
         accz = 0;
-        //pub = new DRPublisher("pub1", "192.168.43.1", 10000);
-        pub = new DRPublisher("pub1", "127.0.0.1", 10000);
-        //pub.Loop = mainLoop;
+        pub = new DRPublisher("pub1", "127.0.0.1", 10000, 60, publishHere);
     }
 
     void Update()
     {
-        try
-        {
-            var isConnectedToDRBoard = pub.IsConnected;
-            var okToPublsih = pub.OkToPublish;
-            Debug.Log("isConnected: " + isConnectedToDRBoard);
-            Debug.Log("okToPublsih: " + okToPublsih);
-            publishHere();
-        }
-        catch(NullReferenceException ne)
-        {
-        }
+      
     }
+
     public void OnApplicationQuit()
     {
         if (pub!=null) pub.destory();
@@ -43,7 +32,6 @@ public class Player : MonoBehaviour {
     {
         if (pub != null) pub.destory();
     }
-
 
     private void publishHere()
     {
