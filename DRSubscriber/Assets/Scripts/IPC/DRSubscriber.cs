@@ -7,11 +7,18 @@ using UnityEngine;
 
 public class DRSubscriber
 {
+    public delegate void SubscriberLoop();
     private bool isConnected, okToSubscribe;
     private DRSocket client, sub;
     private int targetPort;
     private int serverCheckCount;
+    int knockServerCounter = 0;
+    string serverIP;
+    int serverPort;
+    double updateRate;
+    SubscriberLoop subLoop;
 
+    Thread thSub;
     public bool IsConnected
     {
         get
@@ -27,6 +34,9 @@ public class DRSubscriber
 
     public DRSubscriber(string name, string serverIP, int serverPort, string targetPubName)
     {
+        this.serverIP = serverIP;
+        this.serverPort = serverPort;
+
         okToSubscribe = false;
         isConnected = false;
         client = new DRSocket(name);
@@ -34,19 +44,43 @@ public class DRSubscriber
         isConnected = client.IsSocketReady;
         client.setMyInfo(false, "127.0.0.1", targetPubName);
         client.sendMyInfo();
-
-        Thread connThread = new Thread(new ThreadStart(persistent));
+        Thread connThread = new Thread(new ThreadStart(connMethod));
         connThread.Start();
     }
 
-    private void persistent()
+    private void connMethod()
     {
         while (!isConnected)
         {
             client.sendMyInfo();
             isConnected = client.IsSocketReady;
             Debug.Log("is DRMonitor Running?");
+            knockServerCounter++;
+            if(knockServerCounter > 10)
+            {
+                client.connectToServer(serverIP, serverPort);
+                knockServerCounter = 0;
+            }
             Thread.Sleep((int)1000.0 / 30);
+        }
+    }
+
+    public void useThread(double updateRate = 100, SubscriberLoop subLoop = null)
+    {
+        this.updateRate = updateRate;
+        this.subLoop = subLoop;
+        Thread.Sleep(500);
+        thSub = new Thread(new ThreadStart(runSub));
+        thSub.Start();
+    }
+
+    private void runSub()
+    {
+        while (true)
+        {
+            if (subLoop != null) subLoop();
+            else Debug.Log("Subscription method is not defined.");
+            Thread.Sleep((int) (1000.0 / updateRate));
         }
     }
 
@@ -75,8 +109,10 @@ public class DRSubscriber
         }
         else if (okToSubscribe) // server reponse msg is already porcessed and connected to publisher
         {
+            Debug.Log("here 1");
             if (sub.IsNewlyReceived)
             {
+                Debug.Log("here 2");
                 sub.IsNewlyReceived = false;
                 byte[] bMsg = sub.getRecentData();
                 return bMsg;

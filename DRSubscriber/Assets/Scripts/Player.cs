@@ -8,13 +8,19 @@ public class Player : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         sub = new DRSubscriber("sub1", "127.0.0.1", 10000, "pub1");
+        sub.useThread(60, subscribeHere);
 	}
 	
 	// Update is called once per frame
 	void Update () {
+        //subscribeHere();
+    }
+
+    public void subscribeHere()
+    {
         byte[] bMsg = sub.update();
 
-        if(bMsg!=null)
+        if (bMsg != null)
         {
             Debug.Log("subscribing 1");
             ByteBuffer bb = new ByteBuffer(bMsg);
@@ -27,7 +33,7 @@ public class Player : MonoBehaviour {
                 Debug.Log("acc: " + acc.x + ", " + acc.y + ", " + acc.z);
             }
         }
-        
+
     }
 
     public void OnApplicationQuit()

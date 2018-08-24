@@ -67,7 +67,15 @@ public class DRPublisher {
         okToPublish = true;
         Debug.Log("port to pub: " + client.TopicPort);
         openTopicRegistrationDesk();
-        thPub = new Thread(runPUb);
+        Debug.Log("after regi desk");
+    }
+
+    public void useThread(double updateRate = 100, PublisherLoop pubLoop = null)
+    {
+        this.updateRate = updateRate;
+        this.pubLoop = pubLoop;
+        Thread.Sleep(500);
+        thPub = new Thread(new ThreadStart(runPUb));
         thPub.Start();
     }
 
@@ -76,25 +84,13 @@ public class DRPublisher {
         constructorHelper(name, serverIP, serverPort);
     }
 
-    public DRPublisher(string name, string serverIP, int serverPort, double updateRate=100, PublisherLoop pubLoop=null)
-    {
-        this.updateRate = updateRate;
-        this.pubLoop = pubLoop;
-        constructorHelper(name, serverIP, serverPort);
-    }
-    
     #endregion
 
     private void runPUb()
     {
-        while(!okToPublish)
+        while(true)
         {
-            Thread.Sleep((int)Math.Round(1000.0 / updateRate));
-        }
-
-        while(okToPublish)
-        {
-            if(pubLoop!=null) pubLoop();
+            if (pubLoop!=null) pubLoop();
             else Debug.Log("Publication method is not defined.");
             Thread.Sleep((int)Math.Round(1000.0 / updateRate));
         }  
@@ -111,6 +107,7 @@ public class DRPublisher {
 
     public void destory()
     {
+        topicManager = null;
         client.closeSocket();
         isConnected = false;
         okToPublish = false;

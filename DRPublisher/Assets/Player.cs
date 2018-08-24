@@ -15,25 +15,16 @@ public class Player : MonoBehaviour {
         accx = 0;
         accy = 0;
         accz = 0;
-        pub = new DRPublisher("pub1", "127.0.0.1", 10000, 60, publishHere);
+        pub = new DRPublisher("pub1", "127.0.0.1", 10000);
+        pub.useThread(60, publishMethod);
     }
 
     void Update()
     {
-      
+        //publishMethod();
     }
 
-    public void OnApplicationQuit()
-    {
-        if (pub!=null) pub.destory();
-    }
-
-    public void OnDestroy()
-    {
-        if (pub != null) pub.destory();
-    }
-
-    private void publishHere()
+    private void publishMethod()
     {
         if (accx < 5000) accx += 2;
         else accx = 0;
@@ -57,6 +48,19 @@ public class Player : MonoBehaviour {
         byte[] bMsg = fbb.SizedByteArray();
         Debug.Log(bMsg.Length);
         pub.publish(bMsg);
+    }
+
+
+    public void OnApplicationQuit()
+    {
+        if (pub != null) pub.destory();
+        pub = null;
+    }
+
+    public void OnDestroy()
+    {
+        if (pub != null) pub.destory();
+        pub = null;
     }
 
 
