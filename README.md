@@ -10,9 +10,9 @@ Deploy your apps to
 - Playstation<br>
 - XBox
 <br>
-Languages:
-- C#
-- JAVA (coming soon)
-- python
-- C++ (coming soon)
-- more on the way...
+Languages:<br>
+- C#<br>
+- JAVA (coming soon)<br>
+- python<br>
+- C++ (coming soon)<br>
+- more on the way...<br>
