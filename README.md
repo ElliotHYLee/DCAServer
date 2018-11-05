@@ -9,4 +9,10 @@ Deploy your apps to
 - Windows Phone<br>
 - Playstation<br>
 - XBox
-
+<br>
+Languages:
+- C#
+- JAVA (coming soon)
+- python
+- C++ (coming soon)
+- more on the way...
