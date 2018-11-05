@@ -10,4 +10,3 @@ Deploy your apps to
 - Playstation<br>
 - XBox
 
-Don't bother to update your code for differnt platforms!
