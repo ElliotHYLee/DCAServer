@@ -9,3 +9,5 @@ Deploy your apps to
 - Windows Phone<br>
 - Playstation<br>
 - XBox
+
+Don't bother to update your code for differnt platforms!
